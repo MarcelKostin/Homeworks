@@ -40,12 +40,10 @@ class TaskManager {
         }
     }
     func toggleTaskCompletion(by id: UUID){
-        for i in 0..<tasks.count {
-            if tasks[i].id == id {
-                tasks[i].isCompleted.toggle()
-                break
-            }
-        }
+        guard let index = tasks.firstIndex(where: { task in
+            return task.id == id
+        }) else { return }
+        tasks[index].isCompleted.toggle()
     }
     func filterTasks(by category: TaskCategory) -> [Task] {
         return tasks.filter{
