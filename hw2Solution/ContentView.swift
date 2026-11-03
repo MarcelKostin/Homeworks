@@ -14,17 +14,6 @@ enum TaskCategory: String {
     case study = "lamp.desk"
     case personal = "person.fill"
     
-    var color: Color {
-        switch self {
-        case .work:
-            Color.yellow
-        case .study:
-            Color.green
-        case .personal:
-            Color.blue
-        }
-    }
-    
     var image: Image {
         Image(systemName: self.rawValue)
     }
@@ -40,21 +29,23 @@ struct Task: Identifiable {
 
 @Observable
 class TaskManager {
-    fileprivate var tasks: [Task]
+    private var tasks: [Task]
+    
     init (tasks: [Task]){
         self.tasks = tasks
     }
     
-    func addTask(title: String,  category: TaskCategory) -> UUID {
-        let newtask = Task(title: title, category: category)
-        tasks.append(newtask)
-        return newtask.id
+    var allTasks: [Task] {
+        tasks
     }
     
-    func removeTask(by id: UUID){
-        tasks.removeAll { task in
-            task.id == id
-        }
+    func newTask(title: String,  category: TaskCategory) {
+        let newtask = Task(title: title, category: category)
+        tasks.append(newtask)
+    }
+    
+    func removeTask(by id: UUID) {
+        tasks.removeAll { $0.id == id }
     }
     
     func toggleTaskCompletion(by id: UUID){
@@ -73,37 +64,35 @@ class TaskManager {
 }
 
 struct TaskRowView: View {
-
+    
     var task: Task
     
     var body: some View {
-        VStack(spacing: 4) {
-            HStack(spacing: 8) {
-                Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(task.isCompleted ? .green : .gray)
-                Text(task.title)
-                task.category.image
-                Spacer()
-            }
-            .padding(.horizontal,16)
-            .padding(.vertical, 12)
+        HStack(spacing: 8) {
+            Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
+                .foregroundStyle(task.isCompleted ? .green : .gray)
+            Text(task.title)
+            task.category.image
+            Spacer()
         }
+        .padding(.horizontal,16)
+        .padding(.vertical, 12)
     }
 }
 
 struct TaskListView: View {
     @State private var manager = TaskManager(tasks: [
-            Task(title: "Показать проект начальству", category: .work),
-            Task(title: "Сделать домашку", category: .study),
-            Task(title: "Вынести мусор", category: .personal),
-            Task(title: "Подготовиться к контрольной", category: .study)
-        ])
+        Task(title: "Показать проект начальству", category: .work),
+        Task(title: "Сделать домашку", category: .study),
+        Task(title: "Вынести мусор", category: .personal),
+        Task(title: "Подготовиться к контрольной", category: .study)
+    ])
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 8) {
-                    ForEach(manager.tasks) { task in
+                    ForEach(manager.allTasks) { task in
                         TaskRowView(task: task)
                             .onTapGesture {
                                 manager.toggleTaskCompletion(by: task.id)
@@ -116,7 +105,7 @@ struct TaskListView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
-                        manager.addTask(title: "Придумать новые цели", category: [TaskCategory.work, .study, .personal].randomElement()!)
+                        manager.newTask(title: "Придумать новые цели", category: [TaskCategory.work, .study, .personal].randomElement()!)
                     } label: {
                         Image(systemName: "plus")
                     }
