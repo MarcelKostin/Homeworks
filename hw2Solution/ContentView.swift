@@ -9,10 +9,11 @@ import SwiftUI
 
 import Foundation
 
-enum TaskCategory: String {
+enum TaskCategory: String, CaseIterable {
     case work = "folder"
     case study = "lamp.desk"
     case personal = "person.fill"
+    case family = "figure.2.and.child.holdinghands"
     
     var image: Image {
         Image(systemName: self.rawValue)
@@ -75,7 +76,7 @@ struct TaskRowView: View {
             task.category.image
             Spacer()
         }
-        .padding(.horizontal,16)
+        .padding(.horizontal, 16)
         .padding(.vertical, 12)
     }
 }
@@ -90,22 +91,28 @@ struct TaskListView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 8) {
-                    ForEach(manager.allTasks) { task in
-                        TaskRowView(task: task)
-                            .onTapGesture {
-                                manager.toggleTaskCompletion(by: task.id)
+            List {
+                ForEach(manager.allTasks) { task in
+                    TaskRowView(task: task)
+                        .onTapGesture {
+                            manager.toggleTaskCompletion(by: task.id)
+                        }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                manager.removeTask(by: task.id)
+                            } label: {
+                                Label("Удалить", systemImage: "trash")
                             }
-                    }
+                        }
                 }
+                
             }
             .navigationTitle("Мои Задачи")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
-                        manager.newTask(title: "Придумать новые цели", category: [TaskCategory.work, .study, .personal].randomElement()!)
+                        manager.newTask(title: "Придумать новые цели", category: TaskCategory.allCases.randomElement()!)
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -114,6 +121,7 @@ struct TaskListView: View {
         }
     }
 }
+
 #Preview {
     TaskListView()
 }
